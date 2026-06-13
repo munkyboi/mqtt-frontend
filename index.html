@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --table-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            background-image: radial-gradient(circle at top right, #1e293b, transparent 40%),
+                              radial-gradient(circle at bottom left, #0f172a, transparent 40%);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--table-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+
+        .card-value {
+            font-size: 3rem;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+        }
+
+        .status-online { background: rgba(16, 185, 129, 0.2); color: var(--accent-green); }
+        .status-offline { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); }
+
+        .controls {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        button {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .btn-on { background-color: var(--accent-green); }
+        .btn-on:hover { background-color: #059669; }
+
+        .btn-off { background-color: var(--accent-red); }
+        .btn-off:hover { background-color: #dc2626; }
+        
+        .unit {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        .history-container {
+            width: 100%;
+            max-width: 1000px;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            border: 1px solid var(--table-border);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            margin-bottom: 2rem;
+        }
+
+        .chart-wrapper {
+            padding: 1.5rem;
+            height: 300px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--table-border);
+        }
+
+        th {
+            background-color: rgba(0, 0, 0, 0.2);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <h1>Module 15 - Platform Technologies</h1>
+
+    <div>Device Status</div>
+    <div id="deviceStatus" class="status-badge status-offline">Offline</div>
+
+    <br />
+
+    <div class="dashboard">
+        <div class="card">
+            <div class="card-title">Temperature</div>
+            <div class="card-value"><span id="tempValue">--</span><span class="unit">°C</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Humidity</div>
+            <div class="card-value"><span id="humValue">--</span><span class="unit">%</span></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Water Level</div>
+            <div class="card-value"><span id="waterValue">--</span></div>
+        </div>
+    </div>
+
+    <h2>Water Trend</h2>
+    <div class="history-container">
+        <div class="chart-wrapper">
+            <canvas id="historyChart"></canvas>
+        </div>
+    </div>
+
+
+
+    <script>
+        // Chart Initialization
+        const ctx = document.getElementById('historyChart').getContext('2d');
+        const historyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Timestamps
+                datasets: [
+                    {
+                        label: 'Temperature (°C)',
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        data: [],
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Humidity (%)',
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        data: [],
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: 'Water Level',
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        data: [],
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                color: '#f8fafc',
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    y: {
+                        ticks: { color: '#94a3b8' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: { color: '#f8fafc' }
+                    }
+                }
+            }
+        });
+
+        function getStatus() {
+            fetch('/status')
+                .then(response => {
+                    const statusEl = document.getElementById('deviceStatus');
+
+                    statusEl.innerText = response.data.status;
+
+                    if (response.data.status.toLowerCase() === 'online') {
+                        statusEl.className = 'status-badge status-online';
+                    } else {
+                        statusEl.className = 'status-badge status-offline';
+                    }
+                })
+                .catch(err => console.error("Error fetching live data:", err));
+        }
+
+        function getChart() {
+            fetch('/chart')
+                .then(response => {
+                    if (response.data.length === 0) {
+                        return;
+                    }
+
+                    historyChart.data.labels = response.data.map(r => {
+                        // Extract just the HH:MM:SS from the timestamp
+                        const parts = r.recorded_at.split('T');
+                        return parts.length > 1 ? parts[1] : r.recorded_at;
+                    });
+
+                    historyChart.data.labels = response.data.map(r => {
+                        // Extract just the HH:MM:SS from the timestamp
+                        const parts = r.recorded_at.split('T');
+                        return parts.length > 1 ? parts[1] : r.recorded_at;
+                    });
+                    
+                    historyChart.data.datasets[0].data = response.data.map(r => r.temperature !== "--" ? r.temperature : null);
+                    historyChart.data.datasets[1].data = response.data.map(r => r.humidity !== "--" ? r.humidity : null);
+                    historyChart.data.datasets[2].data = response.data.map(r => r.water_level !== "--" ? r.water_level : null);
+                    
+                    historyChart.update();
+                })
+                .catch(err => console.error("Error fetching history:", err));
+        }
+
+        function sendRelay(cmd) {
+            fetch('/relay', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ command: cmd })
+            })
+            .then(response => {
+                console.log(response.status);
+                setTimeout(getChart, 1000); 
+            });
+        }
+
+        // Poll for live updates every 2 seconds
+        setInterval(getStatus, 2000);
+        // Poll for history updates every 5 seconds
+        setInterval(getChart, 5000);
+
+        // Initial calls
+        getStatus();
+        getChart();
+    </script>
+</body>
+</html>
