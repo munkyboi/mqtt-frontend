@@ -282,7 +282,7 @@
         });
 
         function getStatus() {
-            fetch('http://206.189.95.192:3000/status')
+            fetch('http://localhost:3000/status')
                 .then(response => {
                     const statusEl = document.getElementById('deviceStatus');
 
@@ -298,7 +298,7 @@
         }
 
         function getChart() {
-            fetch('http://206.189.95.192:3000/chart')
+            fetch('http://localhost:3000/chart')
                 .then(response => {
                     if (response.data.length === 0) {
                         return;
@@ -330,7 +330,7 @@
         }
 
         function sendRelay(cmd) {
-            fetch('http://206.189.95.192:3000/relay/' + cmd, {
+            fetch('http://localhost:3000/relay/' + cmd, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
