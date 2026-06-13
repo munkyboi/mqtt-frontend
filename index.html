@@ -189,6 +189,14 @@
 
     <br />
 
+    <div>Relay</div>
+    <div class="controls">
+        <button class="btn-on" onclick="sendRelay('ON')">ON</button>
+        <button class="btn-off" onclick="sendRelay('OFF')">OFF</button>
+    </div>
+
+    <br />
+    
     <div class="dashboard">
         <div class="card">
             <div class="card-title">Temperature</div>
@@ -272,7 +280,7 @@
         });
 
         function getStatus() {
-            fetch('/status')
+            fetch('http://206.189.95.192:3000/status')
                 .then(response => {
                     const statusEl = document.getElementById('deviceStatus');
 
@@ -288,11 +296,15 @@
         }
 
         function getChart() {
-            fetch('/chart')
+            fetch('http://206.189.95.192:3000/chart')
                 .then(response => {
                     if (response.data.length === 0) {
                         return;
                     }
+
+                    document.getElementById('tempValue').innerText = response.data[0].temperature;
+                    document.getElementById('humValue').innerText = response.data[0].humidity;
+                    document.getElementById('waterValue').innerText = response.data[0].water_level;
 
                     historyChart.data.labels = response.data.map(r => {
                         // Extract just the HH:MM:SS from the timestamp
@@ -316,7 +328,7 @@
         }
 
         function sendRelay(cmd) {
-            fetch('/relay', {
+            fetch('http://206.189.95.192:3000/relay', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
