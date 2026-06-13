@@ -280,47 +280,42 @@
         });
 
         function getStatus() {
-            fetch('http://206.189.95.192:3000/status')
-                .then(response => {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(payload => {
                     const statusEl = document.getElementById('deviceStatus');
+                    const status = String(payload?.data?.status || payload?.lastDeviceStatus?.status || 'offline');
 
-                    statusEl.innerText = response.data.status;
-
-                    if (response.data.status.toLowerCase() === 'online') {
-                        statusEl.className = 'status-badge status-online';
-                    } else {
-                        statusEl.className = 'status-badge status-offline';
-                    }
+                    statusEl.innerText = status;
+                    statusEl.className = status.toLowerCase() === 'online'
+                        ? 'status-badge status-online'
+                        : 'status-badge status-offline';
                 })
                 .catch(err => console.error("Error fetching live data:", err));
         }
 
         function getChart() {
-            fetch('http://206.189.95.192:3000/chart')
-                .then(response => {
-                    if (response.data.length === 0) {
+            fetch('/api/chart')
+                .then(response => response.json())
+                .then(payload => {
+                    const data = Array.isArray(payload) ? payload : payload?.data;
+
+                    if (!Array.isArray(data) || data.length === 0) {
                         return;
                     }
 
-                    document.getElementById('tempValue').innerText = response.data[0].temperature;
-                    document.getElementById('humValue').innerText = response.data[0].humidity;
-                    document.getElementById('waterValue').innerText = response.data[0].water_level;
+                    document.getElementById('tempValue').innerText = data[0].temperature;
+                    document.getElementById('humValue').innerText = data[0].humidity;
+                    document.getElementById('waterValue').innerText = data[0].water_level;
 
-                    historyChart.data.labels = response.data.map(r => {
-                        // Extract just the HH:MM:SS from the timestamp
-                        const parts = r.recorded_at.split('T');
-                        return parts.length > 1 ? parts[1] : r.recorded_at;
-                    });
-
-                    historyChart.data.labels = response.data.map(r => {
-                        // Extract just the HH:MM:SS from the timestamp
+                    historyChart.data.labels = data.map(r => {
                         const parts = r.recorded_at.split('T');
                         return parts.length > 1 ? parts[1] : r.recorded_at;
                     });
                     
-                    historyChart.data.datasets[0].data = response.data.map(r => r.temperature !== "--" ? r.temperature : null);
-                    historyChart.data.datasets[1].data = response.data.map(r => r.humidity !== "--" ? r.humidity : null);
-                    historyChart.data.datasets[2].data = response.data.map(r => r.water_level !== "--" ? r.water_level : null);
+                    historyChart.data.datasets[0].data = data.map(r => r.temperature !== "--" ? r.temperature : null);
+                    historyChart.data.datasets[1].data = data.map(r => r.humidity !== "--" ? r.humidity : null);
+                    historyChart.data.datasets[2].data = data.map(r => r.water_level !== "--" ? r.water_level : null);
                     
                     historyChart.update();
                 })
@@ -328,7 +323,7 @@
         }
 
         function sendRelay(cmd) {
-            fetch('http://206.189.95.192:3000/relay', {
+            fetch('/api/relay', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -337,8 +332,12 @@
             })
             .then(response => {
                 console.log(response.status);
-                setTimeout(getChart, 1000); 
-            });
+                setTimeout(() => {
+                    getStatus();
+                    getChart();
+                }, 1000);
+            })
+            .catch(err => console.error("Error sending relay command:", err));
         }
 
         // Poll for live updates every 2 seconds
